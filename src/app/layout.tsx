@@ -1,4 +1,5 @@
 import { Inter } from 'next/font/google';
+import { AuthProvider } from '@/components/providers/auth-provider';
 import { Toaster } from 'react-hot-toast';
 import { Navbar } from '@/components/layout/navbar';
 import { SupabaseProvider } from '@/components/providers/supabase-provider';
@@ -19,11 +20,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <SupabaseProvider>
-          <Navbar />
-          <main className="min-h-[calc(100vh-4rem)]">{children}</main>
-          <Toaster />
-        </SupabaseProvider>
+        <AuthProvider>
+          <SupabaseProvider>
+            <Navbar />
+            <main className="min-h-[calc(100vh-4rem)]">{children}</main>
+            <Toaster />
+          </SupabaseProvider>
+        </AuthProvider>
       </body>
     </html>
   );

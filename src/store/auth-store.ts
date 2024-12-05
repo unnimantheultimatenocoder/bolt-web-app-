@@ -1,5 +1,5 @@
-import { create } from 'zustand';
 import { User } from '@/types';
+import create from 'zustand';
 
 interface AuthState {
   user: User | null;
@@ -8,9 +8,9 @@ interface AuthState {
   setLoading: (loading: boolean) => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set: (state: Partial<AuthState>) => void) => ({
   user: null,
   loading: true,
-  setUser: (user) => set({ user }),
-  setLoading: (loading) => set({ loading }),
+  setUser: (user: User | null) => set({ user }),
+  setLoading: (loading: boolean) => set({ loading }),
 }));

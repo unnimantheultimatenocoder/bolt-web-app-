@@ -10,23 +10,18 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // Protected routes
-  if (
-    !session &&
-    (req.nextUrl.pathname.startsWith('/tournaments') ||
-      req.nextUrl.pathname.startsWith('/matches'))
-  ) {
+  // Protect routes under /tournaments, /matches, /wallet
+  if (!session && (
+    req.nextUrl.pathname.startsWith('/tournaments') ||
+    req.nextUrl.pathname.startsWith('/matches') ||
+    req.nextUrl.pathname.startsWith('/wallet')
+  )) {
     return NextResponse.redirect(new URL('/auth/login', req.url));
-  }
-
-  // Redirect to home if logged in user tries to access auth pages
-  if (
-    session &&
-    (req.nextUrl.pathname.startsWith('/auth/login') ||
-      req.nextUrl.pathname.startsWith('/auth/register'))
-  ) {
-    return NextResponse.redirect(new URL('/', req.url));
   }
 
   return res;
 }
+
+export const config = {
+  matcher: ['/tournaments/:path*', '/matches/:path*', '/wallet/:path*']
+};
