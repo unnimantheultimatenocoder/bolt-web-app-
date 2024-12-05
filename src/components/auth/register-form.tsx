@@ -5,8 +5,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/use-auth';
-import toast from 'react-hot-toast'; // Add this line
+import toast from 'react-hot-toast';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useRouter } from 'next/navigation';
 
 const registerSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
@@ -18,7 +19,9 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const { signUp } = useAuth();
+  const router = useRouter();
+  const supabase = createClientComponentClient();
+
   const {
     register,
     handleSubmit,
@@ -30,7 +33,21 @@ export function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setIsLoading(true);
-      await signUp(data.email, data.password, data.username);
+      const { error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            username: data.username,
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success('Check your email to confirm your account!');
+      router.push('/auth/login');
     } catch (error: any) {
       console.error('Registration error:', error);
       toast.error(error.message || 'Failed to register. Please try again.');
@@ -60,14 +77,14 @@ export function RegisterForm() {
 
         <div>
           <label htmlFor="email" className="sr-only">
-            Email address
+            Email
           </label>
           <input
             {...register('email')}
             id="email"
             type="email"
             className="relative block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
-            placeholder="Email address"
+            placeholder="Email"
           />
           {errors.email && (
             <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
@@ -93,8 +110,8 @@ export function RegisterForm() {
 
       <Button
         type="submit"
-        className="w-full"
         disabled={isLoading}
+        className="w-full"
       >
         {isLoading ? 'Creating account...' : 'Create account'}
       </Button>
