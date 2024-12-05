@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/use-auth';
+import toast from 'react-hot-toast'; // Add this line
 
 const registerSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
@@ -30,8 +31,9 @@ export function RegisterForm() {
     try {
       setIsLoading(true);
       await signUp(data.email, data.password, data.username);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
+      toast.error(error.message || 'Failed to register. Please try again.');
     } finally {
       setIsLoading(false);
     }
