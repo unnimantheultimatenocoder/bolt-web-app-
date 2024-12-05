@@ -22,6 +22,7 @@ export function useAuth() {
       router.push('/tournaments');
       router.refresh();
     } catch (error) {
+      console.error('Sign in error:', error);
       toast.error('Failed to sign in. Please try again.');
       throw error;
     }
@@ -29,19 +30,30 @@ export function useAuth() {
 
   const signUp = async (email: string, password: string, username: string) => {
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: { username },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        console.error('Sign up error:', signUpError);
+        throw signUpError;
+      }
 
-      toast.success('Registration successful! Please check your email to verify your account.');
-      router.push('/auth/login');
+      if (data?.user) {
+        console.log('Registration successful:', data);
+        toast.success('Registration successful! Please check your email to verify your account.');
+        router.push('/auth/login');
+      } else {
+        console.error('No user data returned');
+        toast.error('Registration failed. Please try again.');
+      }
     } catch (error) {
+      console.error('Registration error details:', error);
       toast.error('Failed to register. Please try again.');
       throw error;
     }
@@ -53,9 +65,10 @@ export function useAuth() {
       if (error) throw error;
       
       toast.success('Successfully signed out!');
-      router.push('/');
+      router.push('/auth/login');
       router.refresh();
     } catch (error) {
+      console.error('Sign out error:', error);
       toast.error('Failed to sign out. Please try again.');
       throw error;
     }
