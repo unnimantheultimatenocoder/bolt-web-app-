@@ -33,7 +33,20 @@ export function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signUp({
+      
+      // First check if the email already exists
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('email')
+        .eq('email', data.email)
+        .single();
+
+      if (existingUser) {
+        toast.error('This email is already registered');
+        return;
+      }
+
+      const { error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
@@ -44,10 +57,21 @@ export function RegisterForm() {
         },
       });
 
-      if (error) throw error;
+      if (signUpError) {
+        console.error('Sign up error:', signUpError);
+        throw signUpError;
+      }
 
-      toast.success('Check your email to confirm your account!');
-      router.push('/auth/login');
+      toast.success(
+        'Registration successful! Please check your email to verify your account. If you don\'t see it, check your spam folder.',
+        { duration: 6000 }
+      );
+      
+      // Wait a bit before redirecting to ensure the toast is visible
+      setTimeout(() => {
+        router.push('/auth/login');
+      }, 2000);
+
     } catch (error: any) {
       console.error('Registration error:', error);
       toast.error(error.message || 'Failed to register. Please try again.');
